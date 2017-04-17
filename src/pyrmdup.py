@@ -5,8 +5,10 @@ import timeit
 import hashlib
 import shutil
 import random
+import filecmp
 
-myVersion = '-V0.627_170415- Time:'
+myVersion = '-V0.627_170418- Time:'
+LIMITED_SIZE = 65536
 
 def main(folderlist):
     isMoveFile = False
@@ -34,6 +36,7 @@ def main(folderlist):
 
     print "Start find same size files"
     dupfile = []
+    smalldupfile = {}
     result = {}   
     for key,value in dict.iteritems():
         if result.get(value) == None:
@@ -44,10 +47,17 @@ def main(folderlist):
     for key,value in dict.iteritems():  
         if result[value] != None and result[value] >= 2:
             #print key
-            dupfile.append(key)
+            if value < LIMITED_SIZE:
+                if smalldupfile.get(value) != None:
+                    smalldupfile[value].append(key)
+                else:
+                    smalldupfile[value] = [key]
+            else:
+                dupfile.append(key)
+
 
     filecount = len(dupfile)
-    print "Start get hash of same files", filecount
+    print "Start get hash of same files >= ",LIMITED_SIZE, filecount
     result = {}
     for file in dupfile:  
         print filecount,
@@ -60,7 +70,30 @@ def main(folderlist):
         filecount -= 1
         print '>',
 
-    print "\nStart find same files"    
+
+    print "\nStart get hash of same files < ",LIMITED_SIZE, len(result)
+    filecount = 0
+    for key,value in smalldupfile.iteritems():
+        filecount += 1
+        result[filecount] = []
+        removedFile = []
+        print '.',
+        while True:
+            size = len(value)            
+            for f in range(1, size):
+                if filecmp.cmp(value[0], value[f]):
+                     print value[0], ' = ', value[f], '\n'
+                     result[filecount].append(value[f])
+                     removedFile.append(value[f])
+            result[filecount].append(value[0])
+            removedFile.append(value[0])
+            value = list(set(value) - set(removedFile))
+            #print value, len(value), '\n'
+            if len(value) == 0:
+                break
+        print '%',    
+
+    print "\nStart find same files", len(result)    
     results = list(filter(lambda x: len(x) >= 2, result.values()))
     
     if len(results) >= 1:
@@ -106,7 +139,7 @@ def main(folderlist):
      
   
 def getHashValue(filepath):
-    chunksize = 65536
+    chunksize = LIMITED_SIZE
     hash = hashlib.md5()
 
     with open(filepath, 'rb') as afile:
