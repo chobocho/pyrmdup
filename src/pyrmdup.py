@@ -6,7 +6,7 @@ import hashlib
 import shutil
 import random
 
-myVersion = '-V0.627_170418b- Time:'
+myVersion = '-V0.627_170419- Time:'
 LIMITED_SIZE = 65536
 
 def main(folderlist):
@@ -31,28 +31,28 @@ def main(folderlist):
         print f
 
     print "* Start read files"
-    dict = {}    
+    dict = {}  
+    dupfile = []
+    smalldupfile = {}
+    result = {}  
+  
     for folder in folders:
         if os.path.exists(folder):
             for (path, dir, files) in os.walk(folder):
                 for filename in files:
                     tf = os.path.join(path, filename)
                     if isDebugMode: print tf
-                    tfs  = os.path.getsize(tf);
-                    #print("%s/%s" % (path, filename))
-                    dict[tf] = tfs  
-                    #print ("%s : %d" % (tf, dict[tf]))
-
-    print "\n* Start find same size files"
-    dupfile = []
-    smalldupfile = {}
-    result = {}   
-    for key,value in dict.iteritems():
-        if result.get(value) == None:
-            result[value] = 1
+                    dict[tf] = os.path.getsize(tf);
+                    #if isDebugMode: print ("%s/%s " % (path, filename))
+                    if isDebugMode: print ("%s : %d" % (tf, dict[tf]))
+                    if result.get(dict[tf]) == None:
+                        result[dict[tf]] = 1
+                    else:
+                        result[dict[tf]] += 1 
         else:
-            result[value] += 1 
-                   
+            print "Errror:",folder," is not exist"           
+
+    print "\n* Start find same size files"             
     for key,value in dict.iteritems():  
         if result[value] != None and result[value] >= 2:
             #print key
