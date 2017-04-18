@@ -5,36 +5,45 @@ import timeit
 import hashlib
 import shutil
 import random
-import filecmp
 
-myVersion = '-V0.627_170418- Time:'
+myVersion = '-V0.627_170418b- Time:'
 LIMITED_SIZE = 65536
 
 def main(folderlist):
     isMoveFile = False
+    isDebugMode = False
 
-    if (folderlist[1] == '-m'):
-         folders = folderlist[2:]
-         isMoveFile = True
-    else:
-        folders = folderlist[1:]
+    #Check option
+    if '-m' in folderlist:
+        isMoveFile = True
+        folderlist.remove('-m')
+        print "* Remove duplicated files"
 
-    print 'Folders : ', folders, '\n'
+    if '-d' in folderlist:
+        isDebugMode = True
+        folderlist.remove('-d')
+        print "Show file list"       
 
-    print "Start read files"
+    folders = folderlist
+
+    print '* Folders :'
+    for f in folders:
+        print f
+
+    print "* Start read files"
     dict = {}    
     for folder in folders:
         if os.path.exists(folder):
             for (path, dir, files) in os.walk(folder):
                 for filename in files:
                     tf = os.path.join(path, filename)
-                    print tf
+                    if isDebugMode: print tf
                     tfs  = os.path.getsize(tf);
                     #print("%s/%s" % (path, filename))
                     dict[tf] = tfs  
                     #print ("%s : %d" % (tf, dict[tf]))
 
-    print "Start find same size files"
+    print "\n* Start find same size files"
     dupfile = []
     smalldupfile = {}
     result = {}   
@@ -48,6 +57,7 @@ def main(folderlist):
         if result[value] != None and result[value] >= 2:
             #print key
             if value < LIMITED_SIZE:
+                if isDebugMode: print '> ', key, value
                 if smalldupfile.get(value) != None:
                     smalldupfile[value].append(key)
                 else:
@@ -57,13 +67,12 @@ def main(folderlist):
 
 
     filecount = len(dupfile)
-    print "Start get hash of same files >= ",LIMITED_SIZE, filecount
+    print "\n* Start get hash of same files >= ",LIMITED_SIZE, filecount
     result = {}
     for file in dupfile:  
         print filecount,
         fileHash = getHashValue(file)
         if result.get(fileHash) != None:
-        #if fileHash in result:
            result[fileHash].append(file)
         else:
            result[fileHash] = [file]
@@ -71,29 +80,29 @@ def main(folderlist):
         print '>',
 
 
-    print "\nStart get hash of same files < ",LIMITED_SIZE, len(result)
-    filecount = 0
+    print "\n* Start get same files < ",LIMITED_SIZE, len(result)
+    filecount = 1
     for key,value in smalldupfile.iteritems():
-        filecount += 1
-        result[filecount] = []
-        removedFile = []
         print '.',
+        removedFile = []
         while True:
-            size = len(value)            
+            result[filecount] = []
+            size = len(value)        
+            #if isDebugMode: print '\nb', value[0]    
             for f in range(1, size):
-                if filecmp.cmp(value[0], value[f]):
-                     print value[0], ' = ', value[f], '\n'
-                     result[filecount].append(value[f])
-                     removedFile.append(value[f])
+                if dofilecmp(value[0], value[f]) == True:                
+                    print '\n',value[0], ' = ', value[f], '\n'
+                    result[filecount].append(value[f])
+                    removedFile.append(value[f])
             result[filecount].append(value[0])
             removedFile.append(value[0])
             value = list(set(value) - set(removedFile))
-            #print value, len(value), '\n'
+            filecount += 1
             if len(value) == 0:
                 break
         print '%',    
 
-    print "\nStart find same files", len(result)    
+    print "\n* Start find same files", len(result)    
     results = list(filter(lambda x: len(x) >= 2, result.values()))
     
     if len(results) >= 1:
@@ -135,8 +144,17 @@ def main(folderlist):
         resultfile.write('</body></html>')
         resultfile.close()
     else:
-        print "There is no duplicated file" 
+        print "\n* There is no duplicated file" 
      
+def dofilecmp(f1, f2):
+    bufsize = LIMITED_SIZE
+    with open(f1, 'rb') as fp1, open(f2, 'rb') as fp2:
+        b1 = fp1.read(bufsize)
+        b2 = fp2.read(bufsize)
+        if b1 != b2:
+            return False
+        return True
+
   
 def getHashValue(filepath):
     chunksize = LIMITED_SIZE
@@ -152,14 +170,24 @@ def getHashValue(filepath):
     #print retHash 
     return retHash
 
-
+def printHelp():
+    print "\n[Help]"
+    print "Usage : pyrmdup [option] FolderName" 
+    print "option:"
+    print " -d : print log"
+    print " -m : move all duplicated files to dupfiles folder"
+    print " -h : show help message"
+    
 if __name__ == '__main__':
     start_time = timeit.default_timer()
  
     if (len(sys.argv) < 2):
-        print "Usage : pyrmdup FolderName"
+        print "Usage : pyrmdup FolderName"          
     else:
-        main(sys.argv)
+       if ('-h' in sys.argv[1:]):
+           printHelp()
+       else:
+           main(sys.argv[1:])
 
     print '\n', myVersion, timeit.default_timer()-start_time
 
