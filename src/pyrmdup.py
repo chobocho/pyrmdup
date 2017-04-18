@@ -6,7 +6,7 @@ import hashlib
 import shutil
 import random
 
-myVersion = '-V0.627_170419- Time:'
+myVersion = '-V0.627_170419a- Time:'
 LIMITED_SIZE = 65536
 
 def main(folderlist):
@@ -50,12 +50,12 @@ def main(folderlist):
                     else:
                         result[dict[tf]] += 1 
         else:
-            print "Errror:",folder," is not exist"           
+            print "Error:",folder," is not exist"           
 
     print "\n* Start find same size files"             
     for key,value in dict.iteritems():  
         if result[value] != None and result[value] >= 2:
-            #print key
+            #if isDebugMode: print key
             if value < LIMITED_SIZE:
                 if isDebugMode: print '> ', key, value
                 if smalldupfile.get(value) != None:
@@ -102,8 +102,8 @@ def main(folderlist):
                 break
         print '%',    
 
-    print "\n* Start find same files", len(result)    
     results = list(filter(lambda x: len(x) >= 2, result.values()))
+    print "\n* Start find same files", len(results)    
     
     if len(results) >= 1:
         if not os.path.exists('dupfiles'):
@@ -181,13 +181,10 @@ def printHelp():
 if __name__ == '__main__':
     start_time = timeit.default_timer()
  
-    if (len(sys.argv) < 2):
-        print "Usage : pyrmdup FolderName"          
+    if (len(sys.argv) < 2) or ('-h' in sys.argv[1:]):
+        printHelp()
     else:
-       if ('-h' in sys.argv[1:]):
-           printHelp()
-       else:
-           main(sys.argv[1:])
+        main(sys.argv[1:])
 
     print '\n', myVersion, timeit.default_timer()-start_time
 
