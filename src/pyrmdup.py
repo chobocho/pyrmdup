@@ -6,7 +6,7 @@ import hashlib
 import shutil
 import random
 
-myVersion = '-V0.627_170419a- Time:'
+myVersion = '-V0.627_170423a- Time:'
 LIMITED_SIZE = 65536
 
 def main(folderlist):
@@ -88,7 +88,8 @@ def main(folderlist):
         while True:
             result[filecount] = []
             size = len(value)        
-            #if isDebugMode: print '\nb', value[0]    
+            #if isDebugMode: print '\nb', value[0]
+            print '/',    
             for f in range(1, size):
                 if dofilecmp(value[0], value[f]) == True:                
                     print '\n',value[0], ' = ', value[f], '\n'
