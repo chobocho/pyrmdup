@@ -6,7 +6,7 @@ import hashlib
 import shutil
 import random
 
-myVersion = '-V0.627_170423a- Time:'
+myVersion = '-V0.627_170423c- Time:'
 LIMITED_SIZE = 65536
 
 def main(folderlist):
@@ -69,39 +69,68 @@ def main(folderlist):
     filecount = len(dupfile)
     print "\n* Start get hash of same files >= ",LIMITED_SIZE, filecount
     result = {}
+    aMyHash = {}
     for file in dupfile:  
-        print filecount,
-        fileHash = getHashValue(file)
-        if result.get(fileHash) != None:
-           result[fileHash].append(file)
+        fileHash = getMyHash(file)
+        if aMyHash.get(fileHash) != None:
+           aMyHash[fileHash].append(file)
         else:
-           result[fileHash] = [file]
-        filecount -= 1
-        print '>',
-
+           aMyHash[fileHash] = [file]  
+    tmpResult = list(filter(lambda x: len(x) >= 2, aMyHash.values()))
+    aDupfile = []
+    for files in tmpResult:
+        aDupfile += files 
+  
+    filecount = len(aDupfile)
+    print "\n* Start get hash of same files >= ",LIMITED_SIZE, filecount
+    if filecount >= 1:
+        for file in aDupfile:  
+            print filecount,
+            fileHash = getHashValue(file)
+            if result.get(fileHash) != None:
+               result[fileHash].append(file)
+            else:
+               result[fileHash] = [file]
+            filecount -= 1
+            if isDebugMode : print '>',
 
     print "\n* Start get same files < ",LIMITED_SIZE, len(result)
     filecount = 1
-    for key,value in smalldupfile.iteritems():
-        print '.',
-        removedFile = []
-        while True:
-            result[filecount] = []
-            size = len(value)        
-            #if isDebugMode: print '\nb', value[0]
-            print '/',    
-            for f in range(1, size):
-                if dofilecmp(value[0], value[f]) == True:                
-                    print '\n',value[0], ' = ', value[f], '\n'
-                    result[filecount].append(value[f])
-                    removedFile.append(value[f])
-            result[filecount].append(value[0])
-            removedFile.append(value[0])
-            value = list(set(value) - set(removedFile))
-            filecount += 1
-            if len(value) == 0:
-                break
-        print '%',    
+    for key,aValue in smalldupfile.iteritems():
+        print '.',len(aValue),
+        myHash = {}
+        for f in aValue:
+            fileHash = getMyHash(f)
+            if myHash.get(fileHash) != None:
+               myHash[fileHash].append(f)
+            else:
+               myHash[fileHash] = [f]  
+        
+        tmpResult = list(filter(lambda x: len(x) >= 2, myHash.values()))
+        value = []
+        for files in tmpResult:
+             value += files 
+
+        print '_',len(value),
+        if len(value) > 0:
+            removedFile = []
+            while True:
+                result[filecount] = []
+                size = len(value)        
+                #if isDebugMode: print '\nb', value[0]
+                print '/',    
+                for f in range(1, size):
+                    if dofilecmp(value[0], value[f]) == True:                
+                        if isDebugMode : print '\n',value[0], ' = ', value[f], '\n'
+                        result[filecount].append(value[f])
+                        removedFile.append(value[f])
+                result[filecount].append(value[0])
+                removedFile.append(value[0])
+                value = list(set(value) - set(removedFile))
+                filecount += 1
+                if len(value) == 0:
+                    break
+        print '%', 
 
     results = list(filter(lambda x: len(x) >= 2, result.values()))
     print "\n* Start find same files", len(results)    
@@ -141,7 +170,7 @@ def main(folderlist):
                         resultfile.write('<li><a href=\"' + file + '\"> ->' + file + '</a></li><br>')
             print "-" * 20
             resultfile.write('</ul>')
-        
+        resultfile.write('<br>' + myVersion + '<br>')
         resultfile.write('</body></html>')
         resultfile.close()
     else:
@@ -170,6 +199,16 @@ def getHashValue(filepath):
     retHash = hash.hexdigest()
     #print retHash 
     return retHash
+
+def getMyHash(filepath):
+    chunksize = 1024
+
+    with open(filepath, 'rb') as afile:
+        buf = afile.read(chunksize)
+
+    buf = buf + '0.62700000000000000000000000000000000000000000000000000000000'
+    return buf[0:1024]
+
 
 def printHelp():
     print "\n[Help]"
