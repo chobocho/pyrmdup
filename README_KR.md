@@ -6,8 +6,9 @@
 > 같은 크기의 파일 그룹에 속한 파일들을 각각 1024바이트 씩 읽어서 같은 값인 파일들만 남기기  
 > 같은 그룹에 속한 파일들을 1:1로 비교  
 
+
 ## 2. 구현  
-### 2.1 pyrmdup.py 생성
+### 2.1 pyrmdup.py 생성  
 ```
 #-*- coding: utf-8 -*-
 
@@ -18,3 +19,29 @@ if __name__ == '__main__':
    main()
 ```
 
+### 2.2 옵션기능을 추가 함  
+-m : 발견된 중복 파일을 dupfiles 폴더로 옮김
+-d : 자세한 로그를 출력하기
+-h : 도움말을 보여줌 
+
+```
+#-*- coding: utf-8 -*-
+import sys
+
+def main():
+    print "Hello!"
+
+def printHelp():
+    print "\n[Help]"
+    print "Usage : pyrmdup [option] FolderName" 
+    print "option:"
+    print " -d : print log"
+    print " -m : move all duplicated files to dupfiles folder"
+    print " -h : show help message"
+
+if __name__ == '__main__':
+    if (len(sys.argv) < 2) or ('-h' in sys.argv[1:]):
+        printHelp()
+    else:
+        main()
+```
