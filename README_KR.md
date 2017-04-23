@@ -28,8 +28,20 @@ if __name__ == '__main__':
 #-*- coding: utf-8 -*-
 import sys
 
-def main():
-    print "Hello!"
+def main(folderlist):
+    isMoveFile = False
+    isDebugMode = False
+
+    #Check option
+    if '-m' in folderlist:
+        isMoveFile = True
+        folderlist.remove('-m')
+        print "* Remove duplicated files"
+
+    if '-d' in folderlist:
+        isDebugMode = True
+        folderlist.remove('-d')
+        print "* Show file list"  
 
 def printHelp():
     print "\n[Help]"
@@ -43,7 +55,7 @@ if __name__ == '__main__':
     if (len(sys.argv) < 2) or ('-h' in sys.argv[1:]):
         printHelp()
     else:
-        main()
+        main(sys.argv[1:])
 ```
 
 ### 2.3 실행 시간을 확인하기 위한 코드를 추가 
@@ -55,8 +67,20 @@ import timeit
 
 myVersion = '-V0.627_170423c- Time:'
 
-def main():
-    print "Hello!"
+def main(folderlist):
+    isMoveFile = False
+    isDebugMode = False
+
+    #Check option
+    if '-m' in folderlist:
+        isMoveFile = True
+        folderlist.remove('-m')
+        print "* Remove duplicated files"
+
+    if '-d' in folderlist:
+        isDebugMode = True
+        folderlist.remove('-d')
+        print "* Show file list" 
 
 def printHelp():
     print "\n[Help]"
@@ -75,4 +99,139 @@ if __name__ == '__main__':
         main(sys.argv[1:])
 
     print '\n', myVersion, timeit.default_timer()-start_time
+```
+
+
+### 2.4 입력된 폴더의 모든 파일을 출력
+
+```
+#-*- coding: utf-8 -*-
+import sys
+import timeit
+import os
+
+myVersion = '-V0.627_170423c- Time:'
+
+def main(folderlist):
+    isMoveFile = False
+    isDebugMode = False
+
+    #Check option
+    if '-m' in folderlist:
+        isMoveFile = True
+        folderlist.remove('-m')
+        print "* Remove duplicated files"
+
+    if '-d' in folderlist:
+        isDebugMode = True
+        folderlist.remove('-d')
+        print "* Show file list" 
+
+    folders = folderlist
+
+    print '* Folders :'
+    for f in folders:
+        print f
+
+    print "* Start read files"
+  
+    for folder in folders:
+        if os.path.exists(folder):
+            for (path, dir, files) in os.walk(folder):
+                for filename in files:
+                    tf = os.path.join(path, filename)
+                    print tf
+        else:
+            print "Error:",folder," is not exist"       
+
+def printHelp():
+    print "\n[Help]"
+    print "Usage : pyrmdup [option] FolderName" 
+    print "option:"
+    print " -d : print log"
+    print " -m : move all duplicated files to dupfiles folder"
+    print " -h : show help message"
+
+if __name__ == '__main__':
+    start_time = timeit.default_timer()
+ 
+    if (len(sys.argv) < 2) or ('-h' in sys.argv[1:]):
+        printHelp()
+    else:
+        main(sys.argv[1:])
+
+    print '\n', myVersion, timeit.default_timer()-start_time
+
+```
+
+
+### 2.5 입력된 폴더의 모든 파일을 읽어서 같은 크기 끼리 그룹으로 묶음
+
+```
+#-*- coding: utf-8 -*-
+import sys
+import timeit
+import os
+
+myVersion = '-V0.627_170423c- Time:'
+
+def main(folderlist):
+    isMoveFile = False
+    isDebugMode = False
+
+    #Check option
+    if '-m' in folderlist:
+        isMoveFile = True
+        folderlist.remove('-m')
+        print "* Remove duplicated files"
+
+    if '-d' in folderlist:
+        isDebugMode = True
+        folderlist.remove('-d')
+        print "* Show file list" 
+
+    folders = folderlist
+
+    print '* Folders :'
+    for f in folders:
+        print f
+
+    print "* Start read files"
+    dict = {}    #폴더안의 모든 파일을 읽어서, Kye=이름:value=크기 로 저장 
+    result = {}  #중복 파일 리스트를 저장하기 위한 변수
+  
+    for folder in folders:
+        if os.path.exists(folder):
+            for (path, dir, files) in os.walk(folder):
+                for filename in files:
+                    tf = os.path.join(path, filename)
+                    if isDebugMode: print tf
+                    dict[tf] = os.path.getsize(tf);
+                    if isDebugMode: print ("%s : %d" % (tf, dict[tf]))
+
+                    if result.get(dict[tf]) == None:
+                        result[dict[tf]] = 1
+                    else:
+                        result[dict[tf]] += 1 
+        else:
+            print "Error:",folder," is not exist"                
+
+def printHelp():
+    print "\n[Help]"
+    print "Usage : pyrmdup [option] FolderName" 
+    print "option:"
+    print " -d : print log"
+    print " -m : move all duplicated files to dupfiles folder"
+    print " -h : show help message"
+
+if __name__ == '__main__':
+    start_time = timeit.default_timer()
+ 
+    if (len(sys.argv) < 2) or ('-h' in sys.argv[1:]):
+        printHelp()
+    else:
+        main(sys.argv[1:])
+
+    print '\n', myVersion, timeit.default_timer()-start_time
+
 ```
