@@ -6,7 +6,7 @@ import hashlib
 import shutil
 import random
 
-myVersion = '-V0.627_170423c- Time:'
+myVersion = '-V0.627_170424a- Time:'
 LIMITED_SIZE = 65536
 
 def main(folderlist):
@@ -22,7 +22,7 @@ def main(folderlist):
     if '-d' in folderlist:
         isDebugMode = True
         folderlist.remove('-d')
-        print "Show file list"       
+        print "* Show file list"       
 
     folders = folderlist
 
@@ -32,9 +32,7 @@ def main(folderlist):
 
     print "* Start read files"
     dict = {}  
-    dupfile = []
-    smalldupfile = {}
-    result = {}  
+    aResult = {}  
   
     for folder in folders:
         if os.path.exists(folder):
@@ -45,56 +43,33 @@ def main(folderlist):
                     dict[tf] = os.path.getsize(tf);
                     #if isDebugMode: print ("%s/%s " % (path, filename))
                     if isDebugMode: print ("%s : %d" % (tf, dict[tf]))
-                    if result.get(dict[tf]) == None:
-                        result[dict[tf]] = 1
+                    if aResult.get(dict[tf]) == None:
+                        aResult[dict[tf]] = 1
                     else:
-                        result[dict[tf]] += 1 
+                        aResult[dict[tf]] += 1 
         else:
             print "Error:",folder," is not exist"           
 
-    print "\n* Start find same size files"             
+    print "\n* Start find same size files"   
+    bigdupfile = {}
+    smalldupfile = {}
+          
     for key,value in dict.iteritems():  
-        if result[value] != None and result[value] >= 2:
+        if aResult[value] != None and aResult[value] >= 2:
             #if isDebugMode: print key
             if value < LIMITED_SIZE:
-                if isDebugMode: print '> ', key, value
                 if smalldupfile.get(value) != None:
                     smalldupfile[value].append(key)
                 else:
                     smalldupfile[value] = [key]
             else:
-                dupfile.append(key)
+                if bigdupfile.get(value) != None:
+                    bigdupfile[value].append(key)
+                else:
+                    bigdupfile[value] = [key]
 
-
-    filecount = len(dupfile)
-    print "\n* Start get hash of same files >= ",LIMITED_SIZE, filecount
     result = {}
-    aMyHash = {}
-    for file in dupfile:  
-        fileHash = getMyHash(file)
-        if aMyHash.get(fileHash) != None:
-           aMyHash[fileHash].append(file)
-        else:
-           aMyHash[fileHash] = [file]  
-    tmpResult = list(filter(lambda x: len(x) >= 2, aMyHash.values()))
-    aDupfile = []
-    for files in tmpResult:
-        aDupfile += files 
-  
-    filecount = len(aDupfile)
-    print "\n* Start get hash of same files >= ",LIMITED_SIZE, filecount
-    if filecount >= 1:
-        for file in aDupfile:  
-            print filecount,
-            fileHash = getHashValue(file)
-            if result.get(fileHash) != None:
-               result[fileHash].append(file)
-            else:
-               result[fileHash] = [file]
-            filecount -= 1
-            if isDebugMode : print '>',
-
-    print "\n* Start get same files < ",LIMITED_SIZE, len(result)
+    print "\n* Start get same files < ",LIMITED_SIZE, len(smalldupfile)
     filecount = 1
     for key,aValue in smalldupfile.iteritems():
         print '.',len(aValue),
@@ -132,49 +107,82 @@ def main(folderlist):
                     break
         print '%', 
 
-    results = list(filter(lambda x: len(x) >= 2, result.values()))
-    print "\n* Start find same files", len(results)    
+    filecount = len(bigdupfile)
+    print "\n* Start get same files >= ",LIMITED_SIZE, filecount
     
-    if len(results) >= 1:
-        if not os.path.exists('dupfiles'):
-            os.makedirs('dupfiles')
+    for key,value in bigdupfile.iteritems():
+        print '.',len(value),
+        myHash = {}
+        for f in value:
+            fileHash = getMyHash(f)
+            if myHash.get(fileHash) != None:
+               myHash[fileHash].append(f)
+            else:
+               myHash[fileHash] = [f]  
+        
+        tmpResult = list(filter(lambda x: len(x) >= 2, myHash.values()))
+        aDupfile = []
+        for files in tmpResult:
+            aDupfile += files 
 
-        resultfile = open('result.html','w')
-        resultfile.write('<html><body>')
-
-        for files in results:
-            tfiles = files[1:]
-            print files[0]
-            resultfile.write('[ <a href=\"' + files[0] + '\">' + files[0] + '</a> ]<br><ul>')
-            for file in tfiles:
-                #print file
-                afilename = os.path.basename(file)
-                afilepath = os.path.join('dupfiles', afilename)
-
-                if not os.path.exists(afilepath):
-                    if isMoveFile:
-                        shutil.move(file, afilepath)
-                    print file,' -> ',afilepath
-                    if isMoveFile:
-                        resultfile.write('<li><a href=\"' + afilepath + '\">' + afilepath + '</a></li><br>')
-                    else:
-                        resultfile.write('<li><a href=\"' + file + '\">' + file + '</a></li><br>')
+        filecount = len(aDupfile)
+        print '_',filecount,
+        if filecount >= 1:
+            for file in aDupfile:  
+                print filecount,
+                fileHash = getHashValue(file)
+                if result.get(fileHash) != None:
+                   result[fileHash].append(file)
                 else:
-                    afilepath = os.path.join('dupfiles', 'a' + str(random.randrange(100,999)) + '_' + afilename)
-                    if isMoveFile: 
-                        shutil.move(file, afilepath)
-                    print file,' ->> ',afilepath
-                    if isMoveFile:
-                        resultfile.write('<li><a href=\"' + afilepath + '\"> ->' +  afilepath + '</a><li><br>')
+                   result[fileHash] = [file]
+                if isDebugMode : print '>',
+            print '%', 
+
+
+    if len(result) > 1:
+        results = list(filter(lambda x: len(x) >= 2, result.values()))
+        print "\n* Start find same files", len(results)    
+        
+        if len(results) >= 1:
+            if not os.path.exists('dupfiles'):
+                os.makedirs('dupfiles')
+        
+            resultfile = open('result.html','w')
+            resultfile.write('<html><body>')
+        
+            for files in results:
+                tfiles = files[1:]
+                print files[0]
+                resultfile.write('[ <a href=\"' + files[0] + '\">' + files[0] + '</a> ]<br><ul>')
+                for file in tfiles:
+                    #print file
+                    afilename = os.path.basename(file)
+                    afilepath = os.path.join('dupfiles', afilename)
+        
+                    if not os.path.exists(afilepath):
+                        if isMoveFile:
+                            shutil.move(file, afilepath)
+                        print file,' -> ',afilepath
+                        if isMoveFile:
+                            resultfile.write('<li><a href=\"' + afilepath + '\">' + afilepath + '</a></li><br>')
+                        else:
+                            resultfile.write('<li><a href=\"' + file + '\">' + file + '</a></li><br>')
                     else:
-                        resultfile.write('<li><a href=\"' + file + '\"> ->' + file + '</a></li><br>')
-            print "-" * 20
-            resultfile.write('</ul>')
-        resultfile.write('<br>' + myVersion + '<br>')
-        resultfile.write('</body></html>')
-        resultfile.close()
-    else:
-        print "\n* There is no duplicated file" 
+                        afilepath = os.path.join('dupfiles', 'a' + str(random.randrange(100,999)) + '_' + afilename)
+                        if isMoveFile: 
+                            shutil.move(file, afilepath)
+                        print file,' ->> ',afilepath
+                        if isMoveFile:
+                            resultfile.write('<li><a href=\"' + afilepath + '\"> ->' +  afilepath + '</a><li><br>')
+                        else:
+                            resultfile.write('<li><a href=\"' + file + '\"> ->' + file + '</a></li><br>')
+                print "-" * 20
+                resultfile.write('</ul>')
+            resultfile.write('<br>' + myVersion + '<br>')
+            resultfile.write('</body></html>')
+            resultfile.close()
+        else:
+            print "\n* There is no duplicated file" 
      
 def dofilecmp(f1, f2):
     bufsize = LIMITED_SIZE
@@ -217,6 +225,7 @@ def printHelp():
     print " -d : print log"
     print " -m : move all duplicated files to dupfiles folder"
     print " -h : show help message"
+    print "\nThis program DO NOT GUARANTEE YOUR DATA and any problem!\n" 
     
 if __name__ == '__main__':
     start_time = timeit.default_timer()
