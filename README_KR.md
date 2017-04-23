@@ -19,10 +19,10 @@ if __name__ == '__main__':
    main()
 ```
 
-### 2.2 옵션기능을 추가 함  
--m : 발견된 중복 파일을 dupfiles 폴더로 옮김
--d : 자세한 로그를 출력하기
--h : 도움말을 보여줌 
+### 2.2 옵션기능을 추가
+>-m : 발견된 중복 파일을 dupfiles 폴더로 옮김  
+>-d : 자세한 로그를 출력하기  
+>-h : 도움말을 보여줌   
 
 ```
 #-*- coding: utf-8 -*-
@@ -44,4 +44,35 @@ if __name__ == '__main__':
         printHelp()
     else:
         main()
+```
+
+### 2.3 실행 시간을 확인하기 위한 코드를 추가 
+
+```
+#-*- coding: utf-8 -*-
+import sys
+import timeit
+
+myVersion = '-V0.627_170423c- Time:'
+
+def main():
+    print "Hello!"
+
+def printHelp():
+    print "\n[Help]"
+    print "Usage : pyrmdup [option] FolderName" 
+    print "option:"
+    print " -d : print log"
+    print " -m : move all duplicated files to dupfiles folder"
+    print " -h : show help message"
+
+if __name__ == '__main__':
+    start_time = timeit.default_timer()
+ 
+    if (len(sys.argv) < 2) or ('-h' in sys.argv[1:]):
+        printHelp()
+    else:
+        main(sys.argv[1:])
+
+    print '\n', myVersion, timeit.default_timer()-start_time
 ```
