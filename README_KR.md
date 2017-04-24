@@ -235,3 +235,117 @@ if __name__ == '__main__':
     print '\n', myVersion, timeit.default_timer()-start_time
 
 ```
+
+
+### 2.6 중복 파일 그룹을 65536보다 큰 파일 그룹과 작은 파일 그룹으로 나눔
+```
+    # dict : 중복파일 그룹
+
+    print "\n* Start find same size files"   
+    bigdupfile = {}
+    smalldupfile = {}
+          
+    for key,value in dict.iteritems():  
+        if aResult[value] != None and aResult[value] >= 2:
+            #if isDebugMode: print key
+            if value < LIMITED_SIZE:
+                if smalldupfile.get(value) != None:
+                    smalldupfile[value].append(key)
+                else:
+                    smalldupfile[value] = [key]
+            else:
+                if bigdupfile.get(value) != None:
+                    bigdupfile[value].append(key)
+                else:
+                    bigdupfile[value] = [key]
+```
+[전체코드]
+
+
+```
+#-*- coding: utf-8 -*-
+import sys
+import timeit
+import os
+
+myVersion = '-V0.627_170424b- Time:'
+LIMITED_SIZE = 65536
+
+def main(folderlist):
+    isMoveFile = False
+    isDebugMode = False
+
+    #Check option
+    if '-m' in folderlist:
+        isMoveFile = True
+        folderlist.remove('-m')
+        print "* Remove duplicated files"
+
+    if '-d' in folderlist:
+        isDebugMode = True
+        folderlist.remove('-d')
+        print "* Show file list" 
+
+    folders = folderlist
+
+    print '* Folders :'
+    for f in folders:
+        print f
+
+    print "* Start read files"
+    dict = {}    #폴더안의 모든 파일을 읽어서, Kye=이름:value=크기 로 저장 
+    result = {}  #중복 파일 리스트를 저장하기 위한 변수
+  
+    for folder in folders:
+        if os.path.exists(folder):
+            for (path, dir, files) in os.walk(folder):
+                for filename in files:
+                    tf = os.path.join(path, filename)
+                    if isDebugMode: print tf
+                    dict[tf] = os.path.getsize(tf);
+                    if isDebugMode: print ("%s : %d" % (tf, dict[tf]))
+
+                    if result.get(dict[tf]) == None:
+                        result[dict[tf]] = 1
+                    else:
+                        result[dict[tf]] += 1 
+        else:
+            print "Error:",folder," is not exist"                
+
+    print "\n* Start find same size files"   
+    bigdupfile = {}
+    smalldupfile = {}
+          
+    for key,value in dict.iteritems():  
+        if result[value] != None and result[value] >= 2:
+            #if isDebugMode: print key
+            if value < LIMITED_SIZE:
+                if smalldupfile.get(value) != None:
+                    smalldupfile[value].append(key)
+                else:
+                    smalldupfile[value] = [key]
+            else:
+                if bigdupfile.get(value) != None:
+                    bigdupfile[value].append(key)
+                else:
+                    bigdupfile[value] = [key]
+
+def printHelp():
+    print "\n[Help]"
+    print "Usage : pyrmdup [option] FolderName" 
+    print "option:"
+    print " -d : print log"
+    print " -m : move all duplicated files to dupfiles folder"
+    print " -h : show help message"
+
+if __name__ == '__main__':
+    start_time = timeit.default_timer()
+ 
+    if (len(sys.argv) < 2) or ('-h' in sys.argv[1:]):
+        printHelp()
+    else:
+        main(sys.argv[1:])
+
+    print '\n', myVersion, timeit.default_timer()-start_time
+
+```
