@@ -198,7 +198,7 @@ def main(folderlist):
 
     print "* Start read files"
     dict = {}    #폴더안의 모든 파일을 읽어서, Kye=이름:value=크기 로 저장 
-    result = {}  #중복 파일 리스트를 저장하기 위한 변수
+    result = {}  #중복 파일 리스트 개수를 저장하기 위한 변수
   
     for folder in folders:
         if os.path.exists(folder):
@@ -240,13 +240,14 @@ if __name__ == '__main__':
 ### 2.6 중복 파일 그룹을 65536보다 큰 파일 그룹과 작은 파일 그룹으로 나눔
 ```
     # dict : 중복파일 그룹
+    # result : 중복 파일 리스트 개수를 저장하기 위한 변수
 
     print "\n* Start find same size files"   
     bigdupfile = {}
     smalldupfile = {}
           
     for key,value in dict.iteritems():  
-        if aResult[value] != None and aResult[value] >= 2:
+        if result[value] != None and result[value] >= 2:
             #if isDebugMode: print key
             if value < LIMITED_SIZE:
                 if smalldupfile.get(value) != None:
@@ -258,6 +259,7 @@ if __name__ == '__main__':
                     bigdupfile[value].append(key)
                 else:
                     bigdupfile[value] = [key]
+
 ```
 [전체코드]
 
