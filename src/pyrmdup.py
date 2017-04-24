@@ -6,7 +6,8 @@ import hashlib
 import shutil
 import random
 
-myVersion = '-V0.627_170424a- Time:'
+
+myVersion = '-V0.627_170424b- Time:'
 LIMITED_SIZE = 65536
 
 def main(folderlist):
@@ -107,6 +108,8 @@ def main(folderlist):
                     break
         print '%', 
 
+    
+    nextFileCount = filecount + 10;
     filecount = len(bigdupfile)
     print "\n* Start get same files >= ",LIMITED_SIZE, filecount
     
@@ -120,11 +123,11 @@ def main(folderlist):
             else:
                myHash[fileHash] = [f]  
         
-        tmpResult = list(filter(lambda x: len(x) >= 2, myHash.values()))
+        tmpResult = list(filter(lambda x: len(x) >= 3, myHash.values()))
         aDupfile = []
         for files in tmpResult:
             aDupfile += files 
-
+       
         filecount = len(aDupfile)
         print '_',filecount,
         if filecount >= 1:
@@ -135,6 +138,19 @@ def main(folderlist):
                    result[fileHash].append(file)
                 else:
                    result[fileHash] = [file]
+                if isDebugMode : print '>',
+            print '%', 
+
+        tmpOnlyTwoFiles = list(filter(lambda x: len(x) == 2, myHash.values()))
+        filecount = len(tmpOnlyTwoFiles)
+        print '__',filecount,
+        if filecount >= 1:
+            for files in tmpOnlyTwoFiles:  
+                result[nextFileCount] = []
+                if dofilecmp2(files[0], files[1]):
+                    result[nextFileCount].append(files[0])
+                    result[nextFileCount].append(files[1])
+                    nextFileCount += 1
                 if isDebugMode : print '>',
             print '%', 
 
@@ -193,6 +209,18 @@ def dofilecmp(f1, f2):
             return False
         return True
 
+
+def dofilecmp2(f1, f2):
+    bufsize = LIMITED_SIZE
+    with open(f1, 'rb') as fp1, open(f2, 'rb') as fp2:
+        while True:
+            b1 = fp1.read(bufsize)
+            b2 = fp2.read(bufsize)
+            if b1 != b2:
+                return False
+            if not b1:
+                return True
+    
   
 def getHashValue(filepath):
     chunksize = LIMITED_SIZE
