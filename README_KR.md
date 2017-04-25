@@ -351,3 +351,26 @@ if __name__ == '__main__':
     print '\n', myVersion, timeit.default_timer()-start_time
 
 ```
+
+### 2.7 파일 비교를 위한 함수를 추가
+```
+#파일에서 1024바이트를 읽어서 키값으로 쓴다.
+def getMyHash(filepath):
+    chunksize = 1024
+
+    with open(filepath, 'rb') as afile:
+        buf = afile.read(chunksize)
+
+    buf = buf + '0.62700000000000000000000000000000000000000000000000000000000'
+    return buf[0:1024]
+
+
+#두 개의 파일에서 65536바이트를 읽어서 비교한다.  
+def dofilecmp(f1, f2):
+    bufsize = LIMITED_SIZE
+    with open(f1, 'rb') as fp1, open(f2, 'rb') as fp2:
+        b1 = fp1.read(bufsize)
+        b2 = fp2.read(bufsize)
+        if b1 != b2:
+            return False
+        
