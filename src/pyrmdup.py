@@ -6,13 +6,13 @@ import hashlib
 import shutil
 import random
 
-
-myVersion = '-V0.627_170424b- Time:'
+myVersion = '-V0.627_170501a- Time:'
 LIMITED_SIZE = 65536
 
 def main(folderlist):
     isMoveFile = False
     isDebugMode = False
+    error_msg = []
 
     #Check option
     if '-m' in folderlist:
@@ -41,13 +41,18 @@ def main(folderlist):
                 for filename in files:
                     tf = os.path.join(path, filename)
                     if isDebugMode: print tf
-                    dict[tf] = os.path.getsize(tf);
-                    #if isDebugMode: print ("%s/%s " % (path, filename))
-                    if isDebugMode: print ("%s : %d" % (tf, dict[tf]))
-                    if aResult.get(dict[tf]) == None:
-                        aResult[dict[tf]] = 1
-                    else:
-                        aResult[dict[tf]] += 1 
+                    try:
+                        dict[tf] = os.path.getsize(tf);
+                        #if isDebugMode: print ("%s/%s " % (path, filename))
+                        if isDebugMode: print ("%s : %d" % (tf, dict[tf]))
+                        if aResult.get(dict[tf]) == None:
+                            aResult[dict[tf]] = 1
+                        else:
+                            aResult[dict[tf]] += 1
+                    except:
+                        error_msg.append('Fail to get size of ' + tf)
+                        print error_msg[-1]
+ 
         else:
             print "Error:",folder," is not exist"           
 
@@ -199,7 +204,13 @@ def main(folderlist):
             resultfile.close()
         else:
             print "\n* There is no duplicated file" 
-     
+    else:
+        print "\n* There is no duplicated file" 
+
+    if len(error_msg) > 0:
+        for em in error_msg:
+            print em
+
 def dofilecmp(f1, f2):
     bufsize = LIMITED_SIZE
     with open(f1, 'rb') as fp1, open(f2, 'rb') as fp2:
@@ -236,6 +247,7 @@ def getHashValue(filepath):
     #print retHash 
     return retHash
 
+
 def getMyHash(filepath):
     chunksize = 1024
 
@@ -255,6 +267,7 @@ def printHelp():
     print " -h : show help message"
     print "\nThis program DO NOT GUARANTEE YOUR DATA and any problem!\n" 
     
+
 if __name__ == '__main__':
     start_time = timeit.default_timer()
  
